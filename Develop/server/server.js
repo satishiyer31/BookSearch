@@ -7,10 +7,11 @@ const { authMiddleware } = require('./utils/auth');
 
 const db = require('./config/connection');
 
-const routes = require('./routes'); //can remove this in graphql ?
+// const routes = require('./routes'); //can remove this in graphql ?
 
-const app = express();
 const PORT = process.env.PORT || 3001;
+const app = express();
+
 
 const server = new ApolloServer({
   typeDefs,
@@ -18,6 +19,7 @@ const server = new ApolloServer({
   context: authMiddleware,
 });
 
+server.start();
 server.applyMiddleware({ app });
 
 app.use(express.urlencoded({ extended: true }));
@@ -32,7 +34,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
-app.use(routes); //can remove in graphql ?
+
+// app.use(routes); //can remove in graphql ?
 
 db.once('open', () => {
   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
