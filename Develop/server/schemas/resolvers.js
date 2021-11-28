@@ -1,5 +1,5 @@
 const { AuthenticationError } = require('apollo-server-express');
-const { User, Book } = require('../models');
+const { User } = require('../models');
 const { signToken } = require('../utils/auth');
 
 const resolvers = {
@@ -12,14 +12,12 @@ const resolvers = {
     },
     savedbooks: async (parent, { username }) => {
       const params = username ? { username } : {};
-      return Book.find(params).sort({ createdAt: -1 });
+      return User.find(params).sort({ createdAt: -1 });
     },
-    // thought: async (parent, { thoughtId }) => {
-    //   return Thought.findOne({ _id: thoughtId });
-    // },
-    getMe: async (parent, context) => {
+    
+    getMe: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context.user._id }).populate('savedbooks');
+        return User.findOne({ _id: context.user._id }).populate('savedBooks');
       }
       throw new AuthenticationError('You need to be logged in!');
     },
@@ -48,36 +46,30 @@ const resolvers = {
 
       return { token, user };
     },
-    saveBook: async (parent, { bookId }, context) => {
+    saveBook: async (parent, { BookInput }, context) => {
       if (context.user) {
-        const savedBook = await Book.create({
-          _id,
-        //   thoughtAuthor: context.user.username,
-        });
+        
 
-        await User.findOneAndUpdate(
+       const user=  await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedbooks: Book._id } }
+          { $addToSet: { savedBooks: BookInput } }
         );
 
-        return savedBook;
+        return user;
       }
       throw new AuthenticationError('You need to be logged in!');
     },
     
     deleteBook: async (parent, { bookId }, context) => {
       if (context.user) {
-        const book = await Book.findOneAndDelete({
-          _id: bookId,
-         
-        });
+        
 
-        await User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { savedbooks: book._id } }
+          { $pull: { savedBooks:  {bookId} } }
         );
 
-        return thought;
+        return user;
       }
       throw new AuthenticationError('You need to be logged in!');
     },
